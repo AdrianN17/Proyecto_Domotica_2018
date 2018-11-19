@@ -5,6 +5,7 @@
 #define PINFLAMA A0
 #define DHTTYPE DHT11
 #define PINHUMO A1
+#define PINBUZZER 8
 
 const int RL_VALUE = 5;
 const int R0 = 10;   
@@ -37,6 +38,8 @@ void setup()
 {
   dht.begin();
   pinMode(PINFLAMA, INPUT);
+  pinMode(PINHUMO, INPUT);
+  pinMode(PINBUZZER, OUTPUT);
   Serial.begin(9600);
 }
 
@@ -64,7 +67,18 @@ void loop()
   Serial.print(hic);
   Serial.println(" ");
 
-  delay(500);
+  //prender buzzer
+
+  if(concentracion>40000 || hic>50 || flama<300)
+  {
+    digitalWrite(PINBUZZER, HIGH);
+  }
+  else
+  {
+    digitalWrite(PINBUZZER,LOW);
+  }
+
+  
 }
 
 // Obtener la resistencia promedio en N muestras

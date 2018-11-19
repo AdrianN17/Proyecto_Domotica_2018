@@ -21,7 +21,7 @@ void loop() {
   
   Serial.print("El sonido es ");
   Serial.println(sonido);
-
+  
   if(sonido>100)
   {
     value = !value;
