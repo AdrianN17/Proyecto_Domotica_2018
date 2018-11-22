@@ -1,5 +1,6 @@
 #include <DHT.h>
 #include <stdio.h>
+#include <SoftwareSerial.h>
 
 #define PINHUMEDAD 7
 #define PINFLAMA A0
@@ -10,6 +11,9 @@
 #define PINSONIDO A5
 #define PINLDR A4
 #define PINLED 9
+
+#define PINRX 0
+#define PINTX 1
 
 const int RL_VALUE = 5;
 const int R0 = 10;   
@@ -41,6 +45,8 @@ float sonido;
 bool value= true;
 float luz;
 
+SoftwareSerial BT1(PINRX, PINTX); // RX | TX
+
 DHT dht(PINHUMEDAD, DHTTYPE);
 
 
@@ -56,6 +62,16 @@ void setup()
   pinMode(PINLDR, INPUT);
   
   Serial.begin(9600);
+
+  /*pinMode(8, OUTPUT);        // Al poner en HIGH forzaremos el modo AT
+  pinMode(9, OUTPUT);        // cuando se alimente de aqui
+  digitalWrite(9, HIGH);
+  delay (500) ;              // Espera antes de encender el modulo
+  Serial.begin(9600);
+  Serial.println("Levantando el modulo HC-06");
+  digitalWrite (8, HIGH);    //Enciende el modulo
+  Serial.println("Esperando comandos AT:");
+  BT1.begin(38400);*/
 }
 
 void loop()
@@ -118,7 +134,14 @@ void loop()
   digitalWrite(PINLED,value);
   
   //delay(500);
-  
+  /*if (BT1.available())
+  {
+      Serial.write(BT1.read());
+  }
+  if (Serial.available())
+  {
+      BT1.write(Serial.read());
+  }*/
 }
 
 // Obtener la resistencia promedio en N muestras
