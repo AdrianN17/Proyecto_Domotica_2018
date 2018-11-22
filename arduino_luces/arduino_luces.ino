@@ -6,9 +6,7 @@ float sonido;
 bool value= true;
 float luz;
 void setup() {
- pinMode(PINSONIDO,INPUT);
- pinMode(PINLED,OUTPUT);
- pinMode(PINLDR, INPUT);
+ 
  Serial.begin(9600);
 }
 
@@ -27,10 +25,10 @@ void loop() {
     value = !value;
   }
 
-  if(luz>300)
+  /*if(luz>300)
   {
     value= false;
-  }
+  }*/
   digitalWrite(PINLED,value);
 
   delay(500);

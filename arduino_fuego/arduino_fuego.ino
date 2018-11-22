@@ -7,6 +7,10 @@
 #define PINHUMO A1
 #define PINBUZZER 8
 
+#define PINSONIDO A5
+#define PINLDR A4
+#define PINLED 9
+
 const int RL_VALUE = 5;
 const int R0 = 10;   
 
@@ -24,12 +28,18 @@ const float punto1[] = { log10(X1), log10(Y1) };
 const float scope = (punto1[1] - punto0[1]) / (punto1[0] - punto0[0]);
 const float coord = punto0[1] - punto0[0] * scope;
 
+//modulo fuego
 float humedad;
 float temperatura;
 float hic;
 float flama;
 float rs_med;
 float concentracion;
+
+//modulo luces
+float sonido;
+bool value= true;
+float luz;
 
 DHT dht(PINHUMEDAD, DHTTYPE);
 
@@ -40,6 +50,11 @@ void setup()
   pinMode(PINFLAMA, INPUT);
   pinMode(PINHUMO, INPUT);
   pinMode(PINBUZZER, OUTPUT);
+
+  pinMode(PINSONIDO,INPUT);
+  pinMode(PINLED,OUTPUT);
+  pinMode(PINLDR, INPUT);
+  
   Serial.begin(9600);
 }
 
@@ -69,7 +84,8 @@ void loop()
 
   //prender buzzer
 
-  if(concentracion>40000 || hic>50 || flama<300)
+
+  if(concentracion>200000 || hic>50 || flama<300)
   {
     digitalWrite(PINBUZZER, HIGH);
   }
@@ -78,6 +94,30 @@ void loop()
     digitalWrite(PINBUZZER,LOW);
   }
 
+
+  //LDR
+
+  luz = analogRead(PINLDR);
+  Serial.print("La luz es de ");
+  Serial.println(luz);
+
+  //sonido
+  sonido = analogRead(PINSONIDO);
+  Serial.print("El sonido es ");
+  Serial.println(sonido);
+  
+  if(sonido>800)
+  {
+    value = !value;
+  }
+
+  /*if(luz>300)
+  {
+    value= false;
+  }*/
+  digitalWrite(PINLED,value);
+  
+  //delay(500);
   
 }
 
