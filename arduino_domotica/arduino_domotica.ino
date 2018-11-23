@@ -101,7 +101,7 @@ void loop()
   //prender buzzer
 
 
-  if(concentracion>200000 || hic>50 || flama<300)
+  if((concentracion>200000 && hic>50) ||  (flama<300 && hic>50))
   {
     digitalWrite(PINBUZZER, HIGH);
   }
