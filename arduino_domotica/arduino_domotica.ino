@@ -1,5 +1,4 @@
 #include <DHT.h>
-#include <stdio.h>
 #include <SoftwareSerial.h>
 
 #define PINHUMEDAD 7
@@ -12,8 +11,6 @@
 #define PINLDR A4
 #define PINLED 9
 
-#define PINRX 0
-#define PINTX 1
 
 const int RL_VALUE = 5;
 const int R0 = 10;   
@@ -45,7 +42,9 @@ float sonido;
 bool value= true;
 float luz;
 
-SoftwareSerial BT1(PINRX, PINTX); // RX | TX
+bool controlsonido=false;
+
+SoftwareSerial BT(10, 11); // RX | TX
 
 DHT dht(PINHUMEDAD, DHTTYPE);
 
@@ -60,47 +59,42 @@ void setup()
   pinMode(PINSONIDO,INPUT);
   pinMode(PINLED,OUTPUT);
   pinMode(PINLDR, INPUT);
-  
+
+        
+  BT.begin(9600);
   Serial.begin(9600);
 
-  /*pinMode(8, OUTPUT);        // Al poner en HIGH forzaremos el modo AT
-  pinMode(9, OUTPUT);        // cuando se alimente de aqui
-  digitalWrite(9, HIGH);
-  delay (500) ;              // Espera antes de encender el modulo
-  Serial.begin(9600);
-  Serial.println("Levantando el modulo HC-06");
-  digitalWrite (8, HIGH);    //Enciende el modulo
-  Serial.println("Esperando comandos AT:");
-  BT1.begin(38400);*/
+  BT.println("Bluetooth encendido");
+  BT.println("");
 }
 
 void loop()
 {
+
+  
   rs_med = readMQ(PINHUMO); 
   concentracion = getConcentration(rs_med/R0);
-  Serial.print("Concentracion de gas : ");
-  Serial.println(concentracion);
+  /*Serial.print("Concentracion de gas : ");
+  Serial.println(concentracion);*/
   
   flama = analogRead(PINFLAMA);
-  Serial.print("Intensidad de flama : ");
-  Serial.println(flama);
+  /*Serial.print("Intensidad de flama : ");
+  Serial.println(flama);*/
   
   //Recoger datos DHT
   humedad = dht.readHumidity();
   temperatura = dht.readTemperature();
   hic = dht.computeHeatIndex(temperatura,humedad,false);
   // Impresion de datos de DHT
-  Serial.print("Humedad : " );
+  /*Serial.print("Humedad : " );
   Serial.print(humedad);
   Serial.print(" , Temperatura : ");
   Serial.print(temperatura);
   Serial.print(" , Indice de calor : ");
   Serial.print(hic);
-  Serial.println(" ");
+  Serial.println(" ");*/
 
   //prender buzzer
-
-
   if((concentracion>200000 && hic>50) ||  (flama<300 && hic>50))
   {
     digitalWrite(PINBUZZER, HIGH);
@@ -114,34 +108,67 @@ void loop()
   //LDR
 
   luz = analogRead(PINLDR);
-  Serial.print("La luz es de ");
-  Serial.println(luz);
+  /*Serial.print("La luz es de ");
+  Serial.println(luz);*/
 
   //sonido
   sonido = analogRead(PINSONIDO);
-  Serial.print("El sonido es ");
-  Serial.println(sonido);
+  /*Serial.print("El sonido es ");
+  Serial.println(sonido);*/
   
-  if(sonido>800)
+  if(sonido>800 && controlsonido==true)
   {
     value = !value;
   }
-
-  /*if(luz>300)
-  {
-    value= false;
-  }*/
-  digitalWrite(PINLED,value);
   
-  //delay(500);
-  /*if (BT1.available())
+  digitalWrite(PINLED,value);
+
+  if(BT.available())   
   {
-      Serial.write(BT1.read());
+     //Serial.write(BT.read());
+
+     char  data=BT.read();
+
+     if(data=='1')
+     {
+        BT.println("Sensor sonido prendido");
+        BT.println(); 
+        controlsonido=true; 
+     }
+     else if(data=='0')
+     {
+        BT.println("Sensor sonido apagado");
+        BT.println();
+        controlsonido=false;
+     }
+
+     if(data=='2')
+     {
+        BT.println("foco prendido");
+        BT.println();
+        value=true;
+     }
+     else if(data=='3')
+     {
+        BT.println("foco apagado");
+        BT.println();
+        value=false;
+     }
   }
-  if (Serial.available())
+
+  String test =String(concentracion)+","+String(flama)+","+String(humedad)+","+String(temperatura)+","+String(hic)+","+String(luz);
+  //BT.println(test);
+  
+  if(Serial.available())  
   {
-      BT1.write(Serial.read());
-  }*/
+    
+    BT.write(Serial.read());
+
+     
+  }
+
+  
+
 }
 
 // Obtener la resistencia promedio en N muestras
