@@ -129,36 +129,42 @@ void loop()
 
      char  data=BT.read();
 
-     if(data=='1')
+     if(data=='0')
      {
-        BT.println("Sensor sonido prendido");
-        BT.println(); 
-        controlsonido=true; 
-     }
-     else if(data=='0')
-     {
-        BT.println("Sensor sonido apagado");
-        BT.println();
-        controlsonido=false;
-     }
+        controlsonido=!controlsonido; 
 
-     if(data=='2')
-     {
-        BT.println("foco prendido");
-        BT.println();
-        value=true;
+        /*if(controlsonido==true)
+        {
+          //BT.println("Sensor sonido prendido");
+        }
+        else
+        {
+          //BT.println("Sensor sonido apagado");
+        }
+
+        //BT.println(); */
      }
-     else if(data=='3')
+     else if(data=='1')
      {
-        BT.println("foco apagado");
-        BT.println();
-        value=false;
+        value=!value; 
+
+        /*if(value==true)
+        {
+          BT.println("Foco prendido");
+        }
+        else
+        {
+          BT.println("Foco apagado");
+        }
+
+        BT.println();*/ 
      }
   }
 
   String test =String(concentracion)+","+String(flama)+","+String(humedad)+","+String(temperatura)+","+String(hic)+","+String(luz);
-  //BT.println(test);
-  
+  BT.println(test);
+  Serial.println(test);
+    
   if(Serial.available())  
   {
     
@@ -167,8 +173,7 @@ void loop()
      
   }
 
-  
-
+  delay(100);
 }
 
 // Obtener la resistencia promedio en N muestras
