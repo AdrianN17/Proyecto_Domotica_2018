@@ -1,15 +1,23 @@
 #include <DHT.h>
 #include <SoftwareSerial.h>
 
-#define PINHUMEDAD 7
+#define PINHUMEDAD 3
 #define PINFLAMA A0
 #define DHTTYPE DHT11
 #define PINHUMO A1
-#define PINBUZZER 8
+#define PINBUZZER 4
+#define PINLLUVIA A4
 
 #define PINSONIDO A5
-#define PINLDR A4
-#define PINLED 9
+#define PINLED 5
+#define PINLED1 6
+#define PINLED2 7
+#define PINLED3 8
+
+#define PINALIMENTARSONIDO 2
+
+#define LEDROJO 9
+
 
 
 const int RL_VALUE = 5;
@@ -40,9 +48,15 @@ float concentracion;
 //modulo luces
 float sonido;
 bool value= true;
-float luz;
+bool value1=true;
+bool value2=true;
+bool value3=true;
 
+
+bool alimentar=true;
 bool controlsonido=false;
+float lluvia;
+bool alarma;
 
 SoftwareSerial BT(10, 11); // RX | TX
 
@@ -58,7 +72,15 @@ void setup()
 
   pinMode(PINSONIDO,INPUT);
   pinMode(PINLED,OUTPUT);
-  pinMode(PINLDR, INPUT);
+  pinMode(PINLED1,OUTPUT);
+  pinMode(PINLED2,OUTPUT);
+  pinMode(PINLED3,OUTPUT);
+
+  pinMode(PINALIMENTARSONIDO, OUTPUT),
+
+  pinMode(PINLLUVIA, INPUT);
+
+  pinMode(LEDROJO, OUTPUT);
 
         
   BT.begin(9600);
@@ -66,12 +88,18 @@ void setup()
 
   BT.println("Bluetooth encendido");
   BT.println("");
+
+  
 }
 
 void loop()
 {
-
+  //String(concentracion)+","+String(flama)+","+String(humedad)+","+String(temperatura)+","+String(hic)+","+String(lluvia);
+  String denviar[]={"0","0","0","0","0","0","0"};
   
+  digitalWrite(LEDROJO, alarma);
+  
+  digitalWrite(PINALIMENTARSONIDO, controlsonido);
   rs_med = readMQ(PINHUMO); 
   concentracion = getConcentration(rs_med/R0);
   /*Serial.print("Concentracion de gas : ");
@@ -94,22 +122,22 @@ void loop()
   Serial.print(hic);
   Serial.println(" ");*/
 
+  lluvia=analogRead(PINLLUVIA);
+  //Serial.println(lluvia);
   //prender buzzer
-  if((concentracion>200000 && hic>50) ||  (flama<300 && hic>50))
+  
+  //if((concentracion>200000 && hic>50) ||  (flama<300 && hic>50))
+  if((concentracion>200000) ||  (flama<300))
   {
     digitalWrite(PINBUZZER, HIGH);
+    alarma=true; 
+    denviar[6]="1";
   }
   else
   {
     digitalWrite(PINBUZZER,LOW);
+    alarma=false;
   }
-
-
-  //LDR
-
-  luz = analogRead(PINLDR);
-  /*Serial.print("La luz es de ");
-  Serial.println(luz);*/
 
   //sonido
   sonido = analogRead(PINSONIDO);
@@ -122,61 +150,74 @@ void loop()
   }
   
   digitalWrite(PINLED,value);
+  digitalWrite(PINLED1,value1);
+  digitalWrite(PINLED2,value2);
+  digitalWrite(PINLED3,value3);
 
   if(BT.available())   
   {
-     //Serial.write(BT.read());
-
      char  data=BT.read();
 
      if(data=='0')
      {
-        controlsonido=!controlsonido; 
-
-        /*if(controlsonido==true)
-        {
-          //BT.println("Sensor sonido prendido");
-        }
-        else
-        {
-          //BT.println("Sensor sonido apagado");
-        }
-
-        //BT.println(); */
+        alimentar=!alimentar;
      }
      else if(data=='1')
      {
+        controlsonido=!controlsonido; 
+     }
+     else if(data=='2')
+     {
         value=!value; 
-
-        /*if(value==true)
-        {
-          BT.println("Foco prendido");
-        }
-        else
-        {
-          BT.println("Foco apagado");
-        }
-
-        BT.println();*/ 
+     }
+     else if(data=='3')
+     {
+        value1=!value1; 
+     }
+     else if(data=='4')
+     {
+        value2=!value2; 
+     }
+     else if(data=='5')
+     {
+        value3=!value3; 
+     }
+     else if(data=='6')
+     {
+        
+        //Serial.flush();
      }
   }
 
-  String test =String(concentracion)+","+String(flama)+","+String(humedad)+","+String(temperatura)+","+String(hic)+","+String(luz);
-  BT.println(test);
-  Serial.println(test);
-    
-  if(Serial.available())  
-  {
-    
-    BT.write(Serial.read());
+  
 
-     
+  //datos enviados
+
+  if(concentracion>200000)
+  {
+    denviar[0]="1";
   }
 
-  delay(100);
+  if(flama<300)
+  {
+    denviar[1]="1";
+  }
+
+  if(lluvia<500)
+  {
+    denviar[5]="1";
+  }
+
+  String test = denviar[6]+" "+denviar[0]+" "+denviar[1]+" "+String(humedad)+" "+String(temperatura)+" "+String(hic)+" "+denviar[5];
+  BT.println(test);
+
+  //BT.println(denviar[6]);
+
+  //Serial.println(test);
+
+  delay(300);
 }
 
-// Obtener la resistencia promedio en N muestras
 float readMQ(int mq_pin)
 {
    float rs = 0;
@@ -187,13 +228,11 @@ float readMQ(int mq_pin)
    return rs / READ_SAMPLE_TIMES;
 }
  
-// Obtener resistencia a partir de la lectura analogica
 float getMQResistance(int raw_adc)
 {
    return (((float)RL_VALUE / 1000.0*(1023 - raw_adc) / raw_adc));
 }
- 
-// Obtener concentracion 10^(coord + scope * log (rs/r0)
+
 float getConcentration(float rs_ro_ratio)
 {
    return pow(10, coord + scope * log(rs_ro_ratio));
