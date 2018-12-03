@@ -126,8 +126,7 @@ void loop()
   //Serial.println(lluvia);
   //prender buzzer
   
-  //if((concentracion>200000 && hic>50) ||  (flama<300 && hic>50))
-  if((concentracion>200000) &&  (flama<300))
+  if((concentracion>70000) &&  (flama<300))
   {
     digitalWrite(PINBUZZER, HIGH);
     alarma=true; 
@@ -192,21 +191,9 @@ void loop()
   
 
   //datos enviados
-
-  if(concentracion>200000)
-  {
-    denviar[0]="1";
-  }
-
-  if(flama<300)
-  {
-    denviar[1]="1";
-  }
-
-  if(lluvia<500)
-  {
-    denviar[5]="1";
-  }
+  denviar[0]=concentracion;
+  denviar[1]=flama;
+  denviar[5]=lluvia;
 
   String test = denviar[6]+" "+denviar[0]+" "+denviar[1]+" "+String(humedad)+" "+String(temperatura)+" "+String(hic)+" "+denviar[5];
   BT.println(test);
